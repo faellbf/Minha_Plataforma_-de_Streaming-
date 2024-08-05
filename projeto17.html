@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Minha plataforma de Streaming</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f0f0;
+        }
+
+        header {
+            background-color: #333;
+            color: white;
+            text-align: center;
+            padding: 1em 0;
+        }
+
+        .catalog-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            padding: 20px;
+        }
+
+        .catalog-item {
+            background-color: white;
+            border-radius: 5px;
+            padding: 10px;
+            cursor: pointer;
+            flex: 1 0 21%; /* 4 items per row */
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .catalog-item img {
+            width: 100%;
+            border-radius: 5px;
+        }
+
+        .details-container {
+            padding: 20px;
+            display: none;
+        }
+
+        .details-container h2 {
+            margin-top: 0;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Minha Plataforma de Streaming</h1>
+    </header>
+    <main>
+        <div id="catalog" class="catalog-container">
+            <!-- Filmes e séries serão adicionados dinamicamente aqui -->
+        </div>
+        <div id="details" class="details-container">
+            <!-- Detalhes dos títulos serão exibidos aqui -->
+        </div>
+    </main>
+    <script>
+        const apiKey = 'ed91e44856920f9bfe42c3600b0434b4'; // Substitua pela sua chave de API
+        const apiBaseUrl = 'https://api.themoviedb.org/3';
+        const imageBaseUrl = 'https://image.tmdb.org/t/p/w500';
+
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchCatalog();
+        });
+
+        async function fetchCatalog() {
+            const options = {
+                method: 'GET',
+                headers: {
+                    accept: 'application/json',
+                    Authorization: `Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJlZDkxZTQ0ODU2OTIwZjliZmU0MmMzNjAwYjA0MzRiNCIsIm5iZiI6MTcyMTc4MTIyMi4wNDAxNzMsInN1YiI6IjY2OTY4MGYwZWVhY2NjODMxNmRmODAwOSIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.9CvZjIN5gfBfY82ZWycSvLZNGkgH3aL4-ZKb02MlqU8`
+                }
+            };
+
+            try {
+                const response = await fetch(`${apiBaseUrl}/discover/movie?include_adult=false&include_video=false&language=en-US&page=1&sort_by=popularity.desc`, options);
+                const data = await response.json();
+                displayCatalog(data.results);
+            } catch (error) {
+                console.error('Erro ao buscar catálogo:', error);
+            }
+        }
+
+        function displayCatalog(items) {
+            const catalogContainer = document.getElementById('catalog');
+            catalogContainer.innerHTML = '';
+
+            items.forEach(item => {
+                const catalogItem = document.createElement('div');
+                catalogItem.className = 'catalog-item';
+                catalogItem.innerHTML = `
+                    <img src="${imageBaseUrl + item.poster_path}" alt="${item.title}">
+                    <h3>${item.title}</h3>
+                `;
+                catalogItem.addEventListener('click', () => {
+                    fetchDetails(item.id);
+                });
+                catalogContainer.appendChild(catalogItem);
+            });
+        }
+
+        async function fetchDetails(id) {
+            const options = {
+                method: 'GET',
+                headers: {
+                    accept: 'application/json',
+                    Authorization: `Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJlZDkxZTQ0ODU2OTIwZjliZmU0MmMzNjAwYjA0MzRiNCIsIm5iZiI6MTcyMTc4MTIyMi4wNDAxNzMsInN1YiI6IjY2OTY4MGYwZWVhY2NjODMxNmRmODAwOSIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.9CvZjIN5gfBfY82ZWycSvLZNGkgH3aL4-ZKb02MlqU8`
+                }
+            };
+
+            try {
+                const response = await fetch(`${apiBaseUrl}/movie/${id}?api_key=${apiKey}`, options);
+                const data = await response.json();
+                displayDetails(data);
+            } catch (error) {
+                console.error(`Erro ao buscar detalhes do filme ${id}:`, error);
+            }
+        }
+
+        function displayDetails(details) {
+            const detailsContainer = document.getElementById('details');
+            detailsContainer.innerHTML = `
+                <h2>${details.title}</h2>
+                <img src="${imageBaseUrl + details.poster_path}" alt="${details.title}">
+                <p>${details.overview}</p>
+                <p><strong>Data de Lançamento:</strong> ${details.release_date}</p>
+                <p><strong>Avaliação:</strong> ${details.vote_average}</p>
+            `;
+            detailsContainer.style.display = 'block';
+        }
+    </script>
+</body>
+</html>
